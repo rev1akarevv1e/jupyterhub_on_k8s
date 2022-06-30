@@ -1,0 +1,77 @@
+#1
+
+It is a class B private subnet with 1048574 hosts.
+
+
+#2
+
+Check CPU/Mem/IO load on the machine where the service runs. Use SCP for a test transfer in order to assess network performance.
+
+#3
+
+Unless the app/service needs more than 5 machines, Option A. It has an extra 5GB of ram, and since there are less machines it is easier to administer.
+
+#4
+
+Take snapshots. Asses if there are any breaking changes in the updates and if there are different patch levels between machines.  Patch one machine and if its succesful apply to all. Ansible or a script can used to perform the patching.
+
+#5
+
+In short, it is a way of limiting resource usage per processes running under a user. In the example template it will limit the session scope to 70% CPU load given for example a 10core machine. Same with RAM.
+
+#6
+
+Containers are a way to package software applications and their dependencies in a single package that can run in any environment. Containers are easily redeployable & upgradeable, and provide an extra layer of security through process isolation. Containers also make it possible to run multiple applications on the same machine.
+
+#7
+
+Start with a minimal install, use disk encryptiom, LVM for storage, and go from here. Usualy everything is done through a Ansible playbook.
+
+
+#8
+JupyterHub: http://144.126.246.209/ without tls for the moment as jupyter config doesn't want to obtain a lets encrypt certificate using the auto https config, nor does it want to use a secret or certificate and key pasted directly into the config file (strage).
+
+user: nordanalytics
+pass: nordanalyticssolution
+
+Apache2: https://nordanalytics-app.104.248.101.72.nip.io/
+
+
+For both services kubernetes has been deploy on digital ocean using terraform, to reproduce you need a digital ocean account, generate an API token, download doctl:
+
+auth to digital ocean using doctl
+export DIGITALOCEAN_ACCESS_TOKEN=
+
+doctl auth init
+
+cd into jupyterhub-deployment/kubernetes_do_tf
+
+run terraform init
+
+un terraform apply -auto-approve
+
+obtain cluster id after apply finished, it should print it out on the last few lines, should look like 36a01bb7-d42f-4306-9b07-bb231274d541
+
+auth to cluster: kubernetes cluster kubeconfig save 36a01bb7-d42f-4306-9b07-bb231274d541 
+
+to install jupyter:
+
+cd into jupyterhub-deployment
+
+run: helm upgrade --cleanup-on-fail \                                                          
+  --install my-jupyterhub jupyterhub/jupyterhub \
+  --namespace jupyterhub \
+  --create-namespace \
+  --version=1.2.0 \
+  --values config.yaml
+
+find ip of the deployment:
+
+kubectl get service --namespace my-jupyterhub 
+
+wait for the public ip to be allocated by the LB.
+
+access using the username and password from the config.yaml file.
+
+
+if i missed something we can discuss during the call.
